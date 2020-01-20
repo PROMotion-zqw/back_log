@@ -1,0 +1,7 @@
+{
+    "script": "serve.js",
+    "error_file": "./err.json",
+    "out_file": "./out.json",
+    "merge_logs": true,
+    "log_date_format": "YYYY-MM-DD HH:mm Z"
+}
