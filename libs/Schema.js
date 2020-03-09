@@ -14,5 +14,6 @@ module.exports = function () {
         v.Schemas = Ms.Schemas;
         collectionTable[v.collection] = initMod(v)
     })
+    collectionTable.mongoose = Ms.mongoose;
     return collectionTable
 }

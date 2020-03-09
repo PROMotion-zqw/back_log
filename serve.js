@@ -44,7 +44,6 @@ app.all('*', function(req, res, next) {
 });
 app.use(require('./routes/api')(table));
 app.use(require('./routes/add_router')());
-// app.use()
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
 	next(createError(404));

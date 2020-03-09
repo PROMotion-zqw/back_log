@@ -5,14 +5,50 @@ const crt = require('../libs/cryptos');
 const {
 	attrEmpty
 } = require('../libs/m_api');
-module.exports = function(db) {
+module.exports = function (db) {
 	// db 是 mongoose 中的 model 
 	let {
 		users,
-		apiUrl
+		apiUrl,
+		wordTable,
+		mongoose
 	} = db;
+	router.post('/api/addWord', function (req, res) {
+		// console.log('post', req.body);
+		let newWord = new wordTable(req.body)
+		newWord.save((err, sword) => {
+			if (err) {
+				res.json({ ok: false, msg: "添加错误" });
+				return
+			} else {
+				res.json({ ok: true, msg: sword });
+
+			}
+		})
+	})
+
+	router.get('/api/addWord', (req, res) => {
+		wordTable.find().then(table => {
+			res.json({ ok: true, data: table });
+		}).catch(tableErr => {
+			res.json({ ok: false, msg: tableErr });
+		})
+	})
+	router.post('/api/updateWord', (req, res) => {
+		console.log('apiWord');
+		if (JSON.stringify(req.body) != "{}") {
+			let { word_id, newData } = req.body;
+			let idx = mongoose.Types.ObjectId(word_id);
+			wordTable.update({ "_id": idx }, newData).then(wordItem => {
+				res.json({ ok: true, data: wordItem })
+			}).catch(wordErr => {
+				res.json({ ok: false, msg: wordErr })
+			})
+		}
+	})
+
 	// get verification code svg
-	router.get('/api/login', function(req, res) {
+	router.get('/api/login', function (req, res) {
 		var codeConfig = {
 			size: 5, // 验证码长度
 			ignoreChars: '0o1i', // 验证码字符中排除 0o1i
@@ -43,12 +79,12 @@ module.exports = function(db) {
 				if (qe[0].name === us && qe[0].pass === pd) {
 					if (req.session.captcha === req.body.auth) {
 						req.session["admin_id"] = "quanwei";
-						let {_id, name, pass, phone, roles, createTime, email} = qe[0]
+						let { _id, name, pass, phone, roles, createTime, email } = qe[0]
 						res.status(200).send({
 							ok: true,
 							msg: "登录成功",
 							data: {
-								sd: _id+"."+pass,
+								sd: _id + "." + pass,
 								ns: name,
 								phone,
 								rs: roles,
@@ -95,7 +131,8 @@ module.exports = function(db) {
 			page,
 			pageSize
 		} = req.query;
-		let pages = (page - 1) * pageSize;
+		let pageSizes = Number(pageSize)
+		let pages = (page - 1) * pageSizes;
 		users.count().then(cn => {
 			req.data_count = cn;
 			if (page !== undefined && pageSize !== undefined) {
@@ -106,13 +143,15 @@ module.exports = function(db) {
 					createTime: 1
 				}).sort({
 					createTime: -1
-				}).skip(pages).limit(pageSize).then(us => {
+				}).skip(pages).limit(pageSizes).then(us => {
 					res.status(200).json({
 						ok: true,
 						data: us,
 						total: req.data_count
 					})
 				}).catch(err => {
+					console.log('data err');
+					
 					res.status(404).json({
 						ok: false,
 						msg: "404 not found"
@@ -285,7 +324,7 @@ module.exports = function(db) {
 	})
 	router.post('/api/multer', (req, res) => {
 		console.log('multer files', req.body);
-		res.json({ok: true})
+		res.json({ ok: true })
 	})
 
 	return router
