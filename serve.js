@@ -7,15 +7,21 @@ var cookieSession = require('cookie-session');
 var bodyParser = require('body-parser');
 var logger = require('morgan');
 var multer = require('multer');
-var upload = multer({dest: './uploads/'});
-
+var upload = multer({ dest: './uploads/' });
+var { createProxyMiddleware } = require('http-proxy-middleware');
 express.sta
 var app = express();
-
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
-
+app.use('/gettts', createProxyMiddleware({
+	target: 'https://fanyi.baidu.com',
+	changeOrigin: true
+	// ws: true,// proxy websockets
+	// pathRewrite: {
+	// 	'^/api': '',     // rewrite path
+	// },
+}))
 app.use(upload.single('fl'))
 app.use(logger('dev'));
 app.use(bodyParser.json());
@@ -34,7 +40,7 @@ app.use(cookieSession({
 	maxAge: 4 * 60 * 60 * 1000
 }))
 app.use(express.static(path.join(__dirname, 'dist')));
-app.all('*', function(req, res, next) {
+app.all('*', function (req, res, next) {
 	res.header('Access-Control-Allow-Origin', '*');
 	//Access-Control-Allow-Headers ,可根据浏览器的F12查看,把对应的粘贴在这里就行
 	res.header('Access-Control-Allow-Headers', 'Content-Type');
@@ -45,12 +51,12 @@ app.all('*', function(req, res, next) {
 app.use(require('./routes/api')(table));
 app.use(require('./routes/add_router')());
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
 	next(createError(404));
 });
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
 	// set locals, only providing error in development
 	res.locals.message = err.message;
 	res.locals.error = req.app.get('env') === 'development' ? err : {};

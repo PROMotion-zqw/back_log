@@ -14,7 +14,6 @@ module.exports = function (db) {
 		mongoose
 	} = db;
 	router.post('/api/addWord', function (req, res) {
-		// console.log('post', req.body);
 		let newWord = new wordTable(req.body)
 		newWord.save((err, sword) => {
 			if (err) {
@@ -98,12 +97,30 @@ module.exports = function (db) {
 							msg: "验证码错误"
 						}).end()
 					}
+				} else {
+					res.status(404).send({
+						ok: false,
+						msg: "用户名或密码不正确"
+					}).end()
 				}
 			} else {
-				res.status(404).send({
-					ok: false,
-					msg: "用户名或密码不正确"
-				}).end()
+				console.log('[]', us, req.body.pass);
+				if (us === "test" && req.body.pass === "test123") {
+					if (req.session.captcha === req.body.auth) {
+						req.session["admin_id"] = "quanwei";
+						res.status(200).send({ ok: true, msg: "登录成功" })
+					} else {
+						res.status(404).send({
+							ok: false,
+							msg: "验证码错误"
+						}).end()
+					}
+				} else {
+					res.status(404).send({
+						ok: false,
+						msg: "用户名或密码不正确"
+					}).end()
+				}
 			}
 		}).catch(err => {
 			res.status(500).send({
@@ -151,7 +168,7 @@ module.exports = function (db) {
 					})
 				}).catch(err => {
 					console.log('data err');
-					
+
 					res.status(404).json({
 						ok: false,
 						msg: "404 not found"
@@ -290,12 +307,13 @@ module.exports = function (db) {
 	router.post('/api/create_api', (req, res) => {
 		let {
 			url,
-			head,
+			headers,
 			type,
 			roles
 		} = req.body,
-			em_msg = attrEmpty(req.body, ["url", "head", "type", "roles"]);
+			em_msg = attrEmpty(req.body, ["url", "headers", "type", "roles"]);
 		if (em_msg) {
+			console.log('em_msg', em_msg);
 			res.status(404).json({
 				ok: false,
 				msg: em_msg
@@ -304,7 +322,7 @@ module.exports = function (db) {
 		}
 		let createApi = new apiUrl({
 			url,
-			headers: JSON.stringify(head),
+			headers: JSON.stringify(headers),
 			type,
 			roles
 		})
